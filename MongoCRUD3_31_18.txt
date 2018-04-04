@@ -1,0 +1,190 @@
+Mongo CRUD operations
+
+
+
+
+Create - Inserting a document into a collection:
+
+db.COLLECTION_NAME.insert({YOUR_JSON_DOCUMENT})
+
+// Example
+db.ninjas.insert({name: "Trey", belt: "black", status: "awesome"})
+
+The format of the document (BSON object) going into the database is exactly the format it will be available to you coming back out of the database.
+Get comfortable using this syntax by inserting a bunch of things into your collections.
+
+
+
+
+
+READ - Retrieving documents from a collection:
+
+To retrieve documents from your collections, you will use the following method:
+
+//Patern:
+db.COLLECTION_NAME.find({YOUR_QUERY_DOCUMENT})
+
+The parameter we pass to this method is a document. Everything in the document will match the fields in the
+database and only those documents that match the query document will be returned back from the query.
+Here's an example using the ninja document we just made
+
+//example:
+db.ninjas.find({name: "Trey"})
+
+MongoDB by default returns as many results as it can. If you want to just find all of the given collection,
+you can pass an empty object to the .find method; or you can just not pass anything at alkl.
+
+//Examples:
+db.ninjas.find({})
+db.ninjas.find()
+
+//Example to make it look better
+db.ninjas.find().pretty()
+
+Mongo automatically makes ObjectId. 
+//Example:
+db.ninjas.find({_id: Objectid("5462a78e514e258182f4c69a")})
+
+
+
+
+Destroy - Removing documents from a collection:
+To remove an item from the database, we would run the following syntax:
+
+//Pattern:
+db.COLLECTION_NAME.remove({YOUR_QUERY_DOCUMENT}, BOOLEAN)
+//Example
+db.ninjas.remove( {belt: "yellow"})
+db.ninjas.remove( {belt: "yellow"}, false) //this query would have the same effect as the one above.
+
+
+
+
+The boolean is called the justOne boolean, and if it is present and it is true, the remove query will only
+remove the first document that matches the query. db
+
+
+
+UPDATE = Updating documents in a collection:
+
+db.ninjas.update({name: "Trey"}, {location: "Mountain View"})
+
+
+Then, to check to make sure if my update query was right, I'd run:
+
+db.ninjas.find({location: "Mountain View"}).pretty()
+
+We pass two documents to the method: the first one is the query document, meaning that nay document that will get updated must match the query.
+
+The second document is the document that contains the fields we want to add. The full syntax for the update query is this:
+
+db.COLLECTION_NAME.update({QUERY}, {FIELDS_TO_UPDATE}, {OPTIONS})
+//Note: the options document is optional
+
+If we wanted to run the update to only add to the document, (not overwrite it) we would run the following
+(let's pretend we didn't run the query that erased all of our data):
+
+//Example:
+db.ninjas.update({name: "Trey"}, {$set: {location: "Mountain View"}})
+
+By default, the update method updates the first document that matches the first parameter passed to the function.
+In this case, it was the first object whose name key had a value of "Trey". The second parameter in the desired query contains
+what is called an update operator. There are several different types of operators in MongoDB,and we will go over the most common later
+in the chapter.
+
+
+
+
+
+
+//Assignment
+
+Create a database called 'my_first_db'.
+
++ use my_first_db
+
+Create students collection.
+
++ db.createCollection("students")
+
+Each document you insert into this collection should have the following format: ({name: STRING, home_state: STRING, lucky_number: NUMBER, birthday: {month: NUMBER, day: NUMBER, year: NUMBER}})
+
++ db.students.insert({"name" : "Gregory", "home_state" : "Hawaii", "lucky_number" : 20, "birthday" : { "month" : 2, "day" : 9, "year" : 1990 } })
+
+Create 5 students with the appropriate info.
+
+Get all students.
+
++ db.students.find().pretty()
+
+Retrieve all students who are from California (San Jose Dojo) or Washington (Seattle Dojo).
+
++ db.students.find({home_state: "California"})
+
+Get all students whose lucky number is:
+greater than 3
+
++ db.students.find({lucky_number: {$gte: 3}})
+
+less than or equal to 10
+
++ db.students.find({lucky_number: {$lte: 10})
+
+between 1 and 9 (inclusive)
+
++ db.students.find({lucky_number: {$gte: 10,$lte: 20}}) 
+
+Add a field to each student collection called 'interests' that is an ARRAY.  It should contain the following entries: 'coding', 'brunch', 'MongoDB'. Do this in ONE operation.
+
++  db.students.update({name: "Gregorysa"}, {$set: {name: "Gregorysa", interests: ["coding", "brunch", "Seattle"]}}, {upsert: true})
+
+Add some unique interests for each particular student into each of their interest arrays.
+
++ db.students.update({name: "Gregorys"}, {$push: {interests: "taxes"}}, {upsert: true})
+
+Add the interest 'taxes' into someone's interest array.
+
++ db.students.update({name: "Gregorys"}, {$push: {interests: "taxes"}}, {upsert: true})
+
+Remove the 'taxes' interest you just added.
+
++ db.students.update({name: "Gregorys"}, {$pop: {interests: "taxes"}}, {upsert: true})
+
+Remove all students who are from California (or Washington).
+
++ db.students.remove({home_state: "California", home_state: "Hawaii"})
+
+Remove a student by name. 
+
++ db.students.remove({name: "Greg"})
+
+Remove a student whose lucky number is greater than 5 (JUST ONE)
+
++ db.students.remove({lucky_number: { $gt: 20 }})
+
+Add a field to each student collection called 'number_of_belts' and set it to 0.
+
++ db.students.update({name: "Gregory"}, {$set: {number_of_belts: 0}})
+
+Increment this field by 1 for all students in Washington (Seattle Dojo).
+
++ db.students.updateMany({home_state: "Hawaii"}, {$set: {number_of_belts: 1}})
+
+Rename the 'number_of_belts' field to 'belts_earned'
+
++ db.students.updateMany({}, {$rename: {"number_of_belts": "belts_earned"}})
+
+Remove the 'lucky_number' field.
+
++ db.students.updateMany({},{$unset: {lucky_number: ""}})
+
+Add a 'updated_on' field, and set the value as the current date.
+
++ db.students.updateMany({},{$currentDate: {"update_on":{$type: "date"}}})
++ db.students.updateMany({},{$currentDate: {"update_on":{$type: "timestamp"}}})
+
+
+db.students.update({name: "Gregorysa"}, {$set: {name: "Gregorysa", interests: ["coding", "brunch", "Seattle"]}}, {upsert: true})
+
+
+db.students.update({name: "Gregorysar"}, {$push: {interests: ["padsasda", "weweas", "qwwwwww"]}}, {upsert: true})
